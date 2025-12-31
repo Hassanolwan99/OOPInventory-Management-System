@@ -2,7 +2,7 @@
 | ----------------- | :-------: | :-------------: | :------: |
 | Product           |            |      ✔️        |          |
 | PerishableProduct |     ✔️    |                 |          |
-| Supplier          |     ✔️    |                 |          |
-| Inventory         |     ✔️    |                 |          |
+| Supplier          |            |       ✔️       |          |
+| Inventory         |            |       ✔️       |          |
 | Order             |     ✔️    |                 |          |
 | StockManager      |     ✔️    |                 |          |
