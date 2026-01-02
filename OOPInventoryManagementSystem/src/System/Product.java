@@ -1,27 +1,45 @@
 package System;
 
-
 public class Product {
 
-    //  Fields (Attributes) 
+    // Fields (Attributes)
+    private String productId;
     private String name;
     private double price;
     private int quantity;
+    private String category;
+    private int minStockLevel;
 
     //  Constructor 
-    public Product(String name, double price, int quantity) {
+    public Product(String productId, String name, double price, int quantity,
+                   String category, int minStockLevel) {
+        this.productId = productId;
         this.name = name;
-        this.price = price;
-        this.quantity = quantity;
+        setPrice(price);              
+        setQuantity(quantity);       
+        this.category = category;
+        this.minStockLevel = Math.max(minStockLevel, 0);
     }
 
     //  Getters and Setters (Encapsulation) 
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        if (productId != null && !productId.isBlank()) {
+            this.productId = productId;
+        }
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+        }
     }
 
     public double getPrice() {
@@ -29,6 +47,10 @@ public class Product {
     }
 
     public void setPrice(double price) {
+        if (price < 0) {
+            System.out.println("Price cannot be negative. Keeping old value: " + this.price);
+            return;
+        }
         this.price = price;
     }
 
@@ -37,10 +59,34 @@ public class Product {
     }
 
     public void setQuantity(int quantity) {
+        if (quantity < 0) {
+            System.out.println("Quantity cannot be negative. Keeping old value: " + this.quantity);
+            return;
+        }
         this.quantity = quantity;
     }
 
-    // Business methods for stock management 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        if (category != null && !category.isBlank()) {
+            this.category = category;
+        }
+    }
+
+    public int getMinStockLevel() {
+        return minStockLevel;
+    }
+
+    public void setMinStockLevel(int minStockLevel) {
+        if (minStockLevel >= 0) {
+            this.minStockLevel = minStockLevel;
+        }
+    }
+
+    //  Business methods for stock management 
 
     // Increase product quantity in stock
     public void increaseQuantity(int amount) {
@@ -51,7 +97,7 @@ public class Product {
         }
     }
 
-    // Decrease product quantity in stock 
+    // Decrease product quantity in stock (with basic validation)
     public boolean decreaseQuantity(int amount) {
         if (amount <= 0) {
             System.out.println("Amount to decrease must be positive.");
@@ -65,10 +111,48 @@ public class Product {
         return true;
     }
 
-    //  Method to print product information
+    // Check if this product is low in stock
+    public boolean isLowStock() {
+        return this.quantity <= this.minStockLevel;
+    }
+
+    // Restock product to a specific target quantity
+    public void restockTo(int targetQuantity) {
+        if (targetQuantity < 0) {
+            System.out.println("Target quantity cannot be negative.");
+            return;
+        }
+        if (targetQuantity > this.quantity) {
+            int diff = targetQuantity - this.quantity;
+            increaseQuantity(diff);
+        }
+    }
+
+    // Apply discount percentage to price 
+    public void applyDiscount(double percentage) {
+        if (percentage <= 0 || percentage >= 100) {
+            System.out.println("Discount percentage must be between 0 and 100.");
+            return;
+        }
+        double discountAmount = price * (percentage / 100.0);
+        setPrice(price - discountAmount);
+    }
+
+    
+    @Override
+    public String toString() {
+        return "Product {" +
+                "id='" + productId + '\'' +
+                ", name='" + name + '\'' +
+                ", category='" + category + '\'' +
+                ", price=" + price +
+                ", quantity=" + quantity +
+                ", minStockLevel=" + minStockLevel +
+                '}';
+    }
+
+    // Helper method to print using toString 
     public void printInfo() {
-        System.out.println("Product: " + name +
-                           ", Price: " + price +
-                           ", Quantity: " + quantity);
+        System.out.println(toString());
     }
 }
