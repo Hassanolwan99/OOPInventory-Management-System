@@ -196,7 +196,7 @@ public class Product {
                 "sku='" + sku + '\'' +
                 ", name='" + name + '\'' +
                 ", category='" + category + '\'' +
-                ", unitPrice=" + unitPrice +
+                ", unitPrice=" + unitPrice +   
                 ", quantity=" + quantity +
                 ", minStockLevel=" + minStockLevel +
                 ", maxStockLevel=" + maxStockLevel +
