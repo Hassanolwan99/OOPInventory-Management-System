@@ -1,158 +1,210 @@
 package System;
 
+
 public class Product {
 
-    // Fields (Attributes)
-    private String productId;
+    //  Fields (Attributes) 
+    private final String sku;      // Unique product code (cannot be changed)
     private String name;
-    private double price;
-    private int quantity;
     private String category;
-    private int minStockLevel;
+    private double unitPrice;
+    private int quantity;
+    private int minStockLevel;     // Minimum quantity before we consider it "low stock"
+    private int maxStockLevel;     // Optional upper limit to detect over-stock
 
-    //  Constructor 
-    public Product(String productId, String name, double price, int quantity,
-                   String category, int minStockLevel) {
-        this.productId = productId;
-        this.name = name;
-        setPrice(price);              
-        setQuantity(quantity);       
-        this.category = category;
-        this.minStockLevel = Math.max(minStockLevel, 0);
-    }
+    // Constructors 
 
-    //  Getters and Setters (Encapsulation) 
-    public String getProductId() {
-        return productId;
-    }
+    /**
+     * Full constructor with all fields.
+     */
+    public Product(String sku,
+                   String name,
+                   String category,
+                   double unitPrice,
+                   int quantity,
+                   int minStockLevel,
+                   int maxStockLevel) {
 
-    public void setProductId(String productId) {
-        if (productId != null && !productId.isBlank()) {
-            this.productId = productId;
+        if (sku == null || sku.isBlank()) {
+            throw new IllegalArgumentException("SKU cannot be empty");
         }
+        this.sku = sku.trim();
+
+        setName(name);
+        setCategory(category);
+        setUnitPrice(unitPrice);
+        setQuantity(quantity);
+        setMinStockLevel(minStockLevel);
+        setMaxStockLevel(maxStockLevel);
+    }
+
+    /**
+     * Simpler constructor – default category = "General",
+     * minStockLevel = 0, maxStockLevel = Integer.MAX_VALUE.
+     */
+    public Product(String sku, String name, double unitPrice) {
+        this(sku, name, "General", unitPrice, 0, 0, Integer.MAX_VALUE);
+    }
+
+    //  Getters 
+
+    public String getSku() {
+        return sku;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        if (name != null && !name.isBlank()) {
-            this.name = name;
-        }
+    public String getCategory() {
+        return category;
     }
 
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        if (price < 0) {
-            System.out.println("Price cannot be negative. Keeping old value: " + this.price);
-            return;
-        }
-        this.price = price;
+    public double getUnitPrice() {
+        return unitPrice;
     }
 
     public int getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
-        if (quantity < 0) {
-            System.out.println("Quantity cannot be negative. Keeping old value: " + this.quantity);
-            return;
-        }
-        this.quantity = quantity;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        if (category != null && !category.isBlank()) {
-            this.category = category;
-        }
-    }
-
     public int getMinStockLevel() {
         return minStockLevel;
     }
 
-    public void setMinStockLevel(int minStockLevel) {
-        if (minStockLevel >= 0) {
-            this.minStockLevel = minStockLevel;
+    public int getMaxStockLevel() {
+        return maxStockLevel;
+    }
+
+    //  Setters (mutators) with simple validation 
+
+    public void setName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Product name cannot be empty");
         }
+        this.name = name.trim();
+    }
+
+    public void setCategory(String category) {
+        if (category == null || category.isBlank()) {
+            category = "General";
+        }
+        this.category = category.trim();
+    }
+
+    public void setUnitPrice(double unitPrice) {
+        if (unitPrice < 0) {
+            throw new IllegalArgumentException("Unit price cannot be negative");
+        }
+        this.unitPrice = unitPrice;
+    }
+
+    public void setQuantity(int quantity) {
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
+        this.quantity = quantity;
+    }
+
+    public void setMinStockLevel(int minStockLevel) {
+        if (minStockLevel < 0) {
+            throw new IllegalArgumentException("Minimum stock level cannot be negative");
+        }
+        this.minStockLevel = minStockLevel;
+    }
+
+    public void setMaxStockLevel(int maxStockLevel) {
+        if (maxStockLevel < minStockLevel) {
+            throw new IllegalArgumentException("Max stock level cannot be less than min stock level");
+        }
+        this.maxStockLevel = maxStockLevel;
     }
 
     //  Business methods for stock management 
 
-    // Increase product quantity in stock
+    /**
+     * Increase product quantity in stock.
+     *
+     * @param amount how many units to add (must be > 0)
+     */
     public void increaseQuantity(int amount) {
-        if (amount > 0) {
-            this.quantity += amount;
-        } else {
-            System.out.println("Amount to increase must be positive.");
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount to increase must be positive");
         }
+        this.quantity += amount;
     }
 
-    // Decrease product quantity in stock (with basic validation)
+    /**
+     * Decrease product quantity in stock.
+     *
+     * @param amount how many units to remove (must be > 0 and <= current quantity)
+     * @return true if the operation succeeded, false otherwise
+     */
     public boolean decreaseQuantity(int amount) {
         if (amount <= 0) {
-            System.out.println("Amount to decrease must be positive.");
             return false;
         }
         if (amount > this.quantity) {
-            System.out.println("Not enough stock to decrease by " + amount);
             return false;
         }
         this.quantity -= amount;
         return true;
     }
 
-    // Check if this product is low in stock
+    /**
+     * Calculates the total value of this product in stock.
+     */
+    public double getStockValue() {
+        return unitPrice * quantity;
+    }
+
+    /**
+     * Returns true if the quantity is at or below the minimum stock level.
+     */
     public boolean isLowStock() {
-        return this.quantity <= this.minStockLevel;
+        return quantity <= minStockLevel;
     }
 
-    // Restock product to a specific target quantity
-    public void restockTo(int targetQuantity) {
-        if (targetQuantity < 0) {
-            System.out.println("Target quantity cannot be negative.");
-            return;
-        }
-        if (targetQuantity > this.quantity) {
-            int diff = targetQuantity - this.quantity;
-            increaseQuantity(diff);
-        }
+    /**
+     * Returns true if the quantity is at or above the maximum stock level.
+     */
+    public boolean isOverstocked() {
+        return quantity >= maxStockLevel;
     }
 
-    // Apply discount percentage to price 
-    public void applyDiscount(double percentage) {
-        if (percentage <= 0 || percentage >= 100) {
-            System.out.println("Discount percentage must be between 0 and 100.");
-            return;
+    /**
+     * Applies a discount to the unit price.
+     *
+     * @param percent discount in percent (0–100)
+     */
+    public void applyDiscount(double percent) {
+        if (percent < 0 || percent > 100) {
+            throw new IllegalArgumentException("Discount percent must be between 0 and 100");
         }
-        double discountAmount = price * (percentage / 100.0);
-        setPrice(price - discountAmount);
+        double factor = 1 - (percent / 100.0);
+        double newPrice = unitPrice * factor;
+
+        
+        this.unitPrice = Math.round(newPrice * 100.0) / 100.0;
     }
 
-    
+    //  Utility methods 
+
     @Override
     public String toString() {
-        return "Product {" +
-                "id='" + productId + '\'' +
+        return "Product{" +
+                "sku='" + sku + '\'' +
                 ", name='" + name + '\'' +
                 ", category='" + category + '\'' +
-                ", price=" + price +
+                ", unitPrice=" + unitPrice +
                 ", quantity=" + quantity +
                 ", minStockLevel=" + minStockLevel +
+                ", maxStockLevel=" + maxStockLevel +
                 '}';
     }
 
-    // Helper method to print using toString 
-    public void printInfo() {
-        System.out.println(toString());
-    }
+	public void printInfo() {
+		// TODO Auto-generated method stub
+		
+	}
 }
