@@ -174,7 +174,7 @@ public class Product {
 
     /**
      * Applies a discount to the unit price.
-     *
+     *   
      * @param percent discount in percent (0–100)
      */
     public void applyDiscount(double percent) {
