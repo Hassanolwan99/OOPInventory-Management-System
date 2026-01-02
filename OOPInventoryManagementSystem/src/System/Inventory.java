@@ -13,14 +13,41 @@ public class Inventory {
         this.products = new ArrayList<>();
     }
 
-    // Add a new product to the inventory
-    public void addProduct(Product product) {
-        if (product != null) {
-            products.add(product);
+    // Add a new product to the inventory (avoid duplicate SKU)
+    public boolean addProduct(Product product) {
+        if (product == null) return false;
+
+        // Prevent duplicates by SKU
+        if (findBySku(product.getSku()) != null) {
+            return false;
         }
+        products.add(product);
+        return true;
     }
 
-    // Remove product by name (first match)
+    // Remove product by SKU (best unique key)
+    public boolean removeBySku(String sku) {
+        Product toRemove = findBySku(sku);
+        if (toRemove != null) {
+            products.remove(toRemove);
+            return true;
+        }
+        return false;
+    }
+
+    // Find product by SKU (returns first match or null)
+    public Product findBySku(String sku) {
+        if (sku == null || sku.isBlank()) return null;
+
+        for (Product p : products) {
+            if (p.getSku().equalsIgnoreCase(sku.trim())) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    // (Keep your old method) Remove product by name (first match)
     public boolean removeProductByName(String name) {
         Product toRemove = findProductByName(name);
         if (toRemove != null) {
@@ -30,17 +57,45 @@ public class Inventory {
         return false;
     }
 
-    // Find product by name (returns first match or null)
+    // (Keep your old method) Find product by name (returns first match or null)
     public Product findProductByName(String name) {
+        if (name == null || name.isBlank()) return null;
+
         for (Product p : products) {
-            if (p.getName().equalsIgnoreCase(name)) {
+            if (p.getName().equalsIgnoreCase(name.trim())) {
                 return p;
             }
         }
         return null;
     }
 
-    // Get list of products with quantity less than or equal given limit
+    // Increase stock by SKU
+    public boolean increaseStock(String sku, int amount) {
+        Product p = findBySku(sku);
+        if (p == null) return false;
+        p.increaseQuantity(amount);
+        return true;
+    }
+
+    // Decrease stock by SKU
+    public boolean decreaseStock(String sku, int amount) {
+        Product p = findBySku(sku);
+        if (p == null) return false;
+        return p.decreaseQuantity(amount);
+    }
+
+    // Low stock list using Product's minStockLevel
+    public List<Product> getLowStockProducts() {
+        List<Product> lowStock = new ArrayList<>();
+        for (Product p : products) {
+            if (p.isLowStock()) {
+                lowStock.add(p);
+            }
+        }
+        return lowStock;
+    }
+
+    // (Keep your old method) Low stock list using external limit
     public List<Product> getLowStockProducts(int limit) {
         List<Product> lowStock = new ArrayList<>();
         for (Product p : products) {
@@ -51,6 +106,20 @@ public class Inventory {
         return lowStock;
     }
 
+    // Total inventory value
+    public double getTotalInventoryValue() {
+        double total = 0;
+        for (Product p : products) {
+            total += p.getStockValue();
+        }
+        return total;
+    }
+
+    // Return copy of all products
+    public List<Product> getAllProducts() {
+        return new ArrayList<>(products);
+    }
+
     // Print all products in the inventory
     public void printAllProducts() {
         if (products.isEmpty()) {
@@ -58,7 +127,7 @@ public class Inventory {
         } else {
             System.out.println("=== Inventory Products ===");
             for (Product p : products) {
-                p.printInfo();
+                System.out.println(p); // uses Product.toString()
             }
         }
     }
