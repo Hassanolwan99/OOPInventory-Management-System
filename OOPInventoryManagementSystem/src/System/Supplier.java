@@ -10,20 +10,25 @@ import java.util.List;
  */
 public class Supplier {
 
-    //  Fields (Attributes)
-    private final String supplierCode;      // Unique code for this supplier (cannot change)
-    private String name;                    // Supplier name
-    private String phone;                   // Contact phone
-    private String email;                   // Contact e-mail
-    private String address;                 // Physical address
-    private double rating;                  // 0.0 – 5.0
-    private boolean active;                 // Is this supplier active?
-    private final List<String> suppliedProductSkus;  // SKUs of products supplied
+    
+    // Fields
+     
 
-    //  Constructors 
+    private final String supplierCode;              // Unique supplier identifier
+    private String name;
+    private String phone;
+    private String email;
+    private String address;
+    private double rating;                           // 0.0 – 5.0
+    private boolean active;
+    private final List<String> suppliedProductSkus;  // Stored as normalized SKUs
+
+    
+    // Constructors
+
 
     /**
-     * Full constructor with all important supplier information.
+     * Full constructor.
      */
     public Supplier(String supplierCode,
                     String name,
@@ -36,6 +41,7 @@ public class Supplier {
         if (supplierCode == null || supplierCode.isBlank()) {
             throw new IllegalArgumentException("Supplier code cannot be empty");
         }
+
         this.supplierCode = supplierCode.trim();
         this.suppliedProductSkus = new ArrayList<>();
 
@@ -48,16 +54,15 @@ public class Supplier {
     }
 
     /**
-     * Simple constructor with minimal information.
-     * Other fields will get default values.
+     * Minimal constructor.
      */
     public Supplier(String supplierCode, String name) {
-        this(supplierCode, name,
-                "", "", "",
-                0.0, true);
+        this(supplierCode, name, "", "", "", 0.0, true);
     }
 
-    //  Getters 
+    
+    // Getters
+    
 
     public String getSupplierCode() {
         return supplierCode;
@@ -88,13 +93,15 @@ public class Supplier {
     }
 
     /**
-     * Returns an unmodifiable copy of the supplied product SKUs.
+     * Returns an unmodifiable list of supplied product SKUs.
      */
     public List<String> getSuppliedProductSkus() {
         return Collections.unmodifiableList(new ArrayList<>(suppliedProductSkus));
     }
 
-    // === Setters with basic validation ===
+    
+    // Setters with validation
+   
 
     public void setName(String name) {
         if (name == null || name.isBlank()) {
@@ -104,16 +111,13 @@ public class Supplier {
     }
 
     public void setPhone(String phone) {
-        if (phone == null) {
-            phone = "";
-        }
-        this.phone = phone.trim();
+        this.phone = (phone == null) ? "" : phone.trim();
     }
 
     public void setEmail(String email) {
         if (email == null || email.isBlank()) {
             this.email = "";
-        } else if (!email.contains("@")) {
+        } else if (!email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
             throw new IllegalArgumentException("Invalid email address");
         } else {
             this.email = email.trim();
@@ -121,10 +125,7 @@ public class Supplier {
     }
 
     public void setAddress(String address) {
-        if (address == null) {
-            address = "";
-        }
-        this.address = address.trim();
+        this.address = (address == null) ? "" : address.trim();
     }
 
     public void setRating(double rating) {
@@ -141,35 +142,38 @@ public class Supplier {
         this.active = active;
     }
 
-    //  Business methods 
+    
+    // Business Logic
+   
+
+    private String normalizeSku(String sku) {
+        return sku.trim().toUpperCase();
+    }
 
     /**
-     * Adds a product SKU to the list of products supplied by this supplier.
+     * Adds a product SKU supplied by this supplier.
      */
     public void addSuppliedProductSku(String sku) {
-        if (sku == null || sku.isBlank()) {
-            return;
-        }
-        String normalized = sku.trim();
+        if (sku == null || sku.isBlank()) return;
+
+        String normalized = normalizeSku(sku);
         if (!suppliedProductSkus.contains(normalized)) {
             suppliedProductSkus.add(normalized);
         }
     }
 
     /**
-     * Removes a product SKU from the list of products supplied by this supplier.
+     * Removes a supplied product SKU.
      *
-     * @return true if the SKU was removed, false otherwise.
+     * @return true if removed successfully
      */
     public boolean removeSuppliedProductSku(String sku) {
-        if (sku == null) {
-            return false;
-        }
-        return suppliedProductSkus.remove(sku.trim());
+        if (sku == null || sku.isBlank()) return false;
+        return suppliedProductSkus.remove(normalizeSku(sku));
     }
 
     /**
-     * Updates the contact information for this supplier.
+     * Updates contact information.
      */
     public void updateContactInfo(String phone, String email, String address) {
         setPhone(phone);
@@ -177,22 +181,16 @@ public class Supplier {
         setAddress(address);
     }
 
-    /**
-     * Deactivates this supplier (for example, no longer used).
-     */
     public void deactivate() {
         this.active = false;
     }
 
-    /**
-     * Reactivates this supplier.
-     */
     public void activate() {
         this.active = true;
     }
 
     /**
-     * Short one-line info, useful for lists.
+     * Short one-line description.
      */
     public String getShortInfo() {
         return "Supplier{" +
