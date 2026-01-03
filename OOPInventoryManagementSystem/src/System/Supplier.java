@@ -117,12 +117,18 @@ public class Supplier {
     public void setEmail(String email) {
         if (email == null || email.isBlank()) {
             this.email = "";
-        } else if (!email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
-            throw new IllegalArgumentException("Invalid email address");
-        } else {
-            this.email = email.trim();
+            return;
         }
+
+        String trimmed = email.trim(); //  trim first
+
+        if (!trimmed.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            throw new IllegalArgumentException("Invalid email address");
+        }
+
+        this.email = trimmed;
     }
+
 
     public void setAddress(String address) {
         this.address = (address == null) ? "" : address.trim();
