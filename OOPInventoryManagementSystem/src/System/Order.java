@@ -4,14 +4,20 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Order {
 
+    
+    // Fields
+   
     private final String orderId;
     private final LocalDate orderDate;
     private OrderStatus status;
-
     private final List<OrderItem> items;
 
+   
+    // Constructor
+ 
     public Order(String orderId) {
         if (orderId == null || orderId.isBlank()) {
             throw new IllegalArgumentException("Order ID cannot be empty");
@@ -22,26 +28,41 @@ public class Order {
         this.items = new ArrayList<>();
     }
 
-    public String getOrderId() { return orderId; }
-    public LocalDate getOrderDate() { return orderDate; }
-    public OrderStatus getStatus() { return status; }
+    
+    // Getters
+    
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public LocalDate getOrderDate() {
+        return orderDate;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
 
     public List<OrderItem> getItems() {
         return new ArrayList<>(items); // defensive copy
     }
 
-    // --------------------
-    // Items logic
-    // --------------------
+   
+    // Item management
+    
     public void addItem(Product product, int quantity) {
         ensureEditable();
 
-        if (product == null) throw new IllegalArgumentException("Product cannot be null");
-        if (quantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
+        if (product == null) {
+            throw new IllegalArgumentException("Product cannot be null");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
 
         String sku = product.getSku().trim().toUpperCase();
 
-        // If SKU already exists, just increase quantity
+        // If item already exists, increase quantity
         OrderItem existing = findItemBySku(sku);
         if (existing != null) {
             existing.increaseQuantity(quantity);
@@ -60,18 +81,22 @@ public class Order {
         ensureEditable();
 
         OrderItem item = findItemBySku(sku);
-        if (item == null) return false;
+        if (item == null) {
+            return false;
+        }
         return items.remove(item);
     }
 
     public OrderItem findItemBySku(String sku) {
-        if (sku == null || sku.isBlank()) return null;
-        String normalized = sku.trim().toUpperCase();
+        if (sku == null || sku.isBlank()) {
+            return null;
+        }
 
+        String normalized = sku.trim().toUpperCase();
         for (OrderItem item : items) {
             if (item.getSku().equalsIgnoreCase(normalized)) {
                 return item;
-            } 
+            }
         }
         return null;
     }
@@ -81,23 +106,16 @@ public class Order {
     }
 
     public double getTotalAmount() {
-        double total = 0;
+        double total = 0.0;
         for (OrderItem item : items) {
             total += item.getLineTotal();
         }
         return total;
     }
 
-    // --------------------
-    // Status logic
-    // --------------------
-    public void cancel() {
-        if (status == OrderStatus.COMPLETED) {
-            throw new IllegalStateException("Completed order cannot be cancelled");
-        }
-        this.status = OrderStatus.CANCELLED;
-    }
-
+   
+    // Order status logic
+    
     public void complete() {
         if (items.isEmpty()) {
             throw new IllegalStateException("Cannot complete an empty order");
@@ -105,12 +123,22 @@ public class Order {
         this.status = OrderStatus.COMPLETED;
     }
 
+    public void cancel() {
+        if (status == OrderStatus.COMPLETED) {
+            throw new IllegalStateException("Completed order cannot be cancelled");
+        }
+        this.status = OrderStatus.CANCELLED;
+    }
+
     private void ensureEditable() {
         if (status != OrderStatus.NEW) {
-            throw new IllegalStateException("Order cannot be modified unless status is NEW");
+            throw new IllegalStateException("Order can only be modified when status is NEW");
         }
     }
 
+   
+    // Utility
+    
     @Override
     public String toString() {
         return "Order{" +
@@ -118,7 +146,7 @@ public class Order {
                 ", orderDate=" + orderDate +
                 ", status=" + status +
                 ", items=" + items +
-                ", total=" + getTotalAmount() +
+                ", totalAmount=" + getTotalAmount() +
                 '}';
     }
 }
