@@ -7,13 +7,13 @@ import java.util.List;
 /**
  * Represents a supplier in the inventory system.
  * A supplier provides one or more products identified by their SKUs.
+ *
+ * Implements Storable to satisfy the project interface requirement.
+ * Here, supplierCode acts as the unique "SKU/ID" for the supplier entity.
  */
-public class Supplier {
+public class Supplier implements Storable {
 
-    
     // Fields
-     
-
     private final String supplierCode;              // Unique supplier identifier
     private String name;
     private String phone;
@@ -23,9 +23,7 @@ public class Supplier {
     private boolean active;
     private final List<String> suppliedProductSkus;  // Stored as normalized SKUs
 
-    
     // Constructors
-
 
     /**
      * Full constructor.
@@ -60,16 +58,21 @@ public class Supplier {
         this(supplierCode, name, "", "", "", 0.0, true);
     }
 
-    
-    // Getters
-    
-
-    public String getSupplierCode() {
+    // Storable implementation
+    @Override
+    public String getSku() {
         return supplierCode;
     }
 
+    @Override
     public String getName() {
         return name;
+    }
+
+    // Additional getters
+
+    public String getSupplierCode() {
+        return supplierCode;
     }
 
     public String getPhone() {
@@ -99,9 +102,7 @@ public class Supplier {
         return Collections.unmodifiableList(new ArrayList<>(suppliedProductSkus));
     }
 
-    
     // Setters with validation
-   
 
     public void setName(String name) {
         if (name == null || name.isBlank()) {
@@ -120,7 +121,7 @@ public class Supplier {
             return;
         }
 
-        String trimmed = email.trim(); //  trim first
+        String trimmed = email.trim();
 
         if (!trimmed.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
             throw new IllegalArgumentException("Invalid email address");
@@ -128,7 +129,6 @@ public class Supplier {
 
         this.email = trimmed;
     }
-
 
     public void setAddress(String address) {
         this.address = (address == null) ? "" : address.trim();
@@ -148,9 +148,7 @@ public class Supplier {
         this.active = active;
     }
 
-    
     // Business Logic
-   
 
     private String normalizeSku(String sku) {
         return sku.trim().toUpperCase();
