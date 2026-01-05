@@ -3,10 +3,11 @@ package System;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Inventory {
 
     // List to store all products in the inventory
-    private List<Product> products;
+    private final List<Product> products;
 
     // Constructor
     public Inventory() {
@@ -23,6 +24,11 @@ public class Inventory {
         }
         products.add(product);
         return true;
+    }
+
+    // Check if a product exists by SKU
+    public boolean hasProductBySku(String sku) {
+        return findBySku(sku) != null;
     }
 
     // Remove product by SKU (best unique key)
@@ -47,7 +53,7 @@ public class Inventory {
         return null;
     }
 
-    // (Keep your old method) Remove product by name (first match)
+    // Remove product by name (first match)
     public boolean removeProductByName(String name) {
         Product toRemove = findProductByName(name);
         if (toRemove != null) {
@@ -57,7 +63,7 @@ public class Inventory {
         return false;
     }
 
-    // (Keep your old method) Find product by name (returns first match or null)
+    // Find product by name (returns first match or null)
     public Product findProductByName(String name) {
         if (name == null || name.isBlank()) return null;
 
@@ -69,7 +75,7 @@ public class Inventory {
         return null;
     }
 
-    // Increase stock by SKU
+    // Increase stock by SKU (updates Product.quantity)
     public boolean increaseStock(String sku, int amount) {
         Product p = findBySku(sku);
         if (p == null) return false;
@@ -77,7 +83,7 @@ public class Inventory {
         return true;
     }
 
-    // Decrease stock by SKU
+    // Decrease stock by SKU (updates Product.quantity)
     public boolean decreaseStock(String sku, int amount) {
         Product p = findBySku(sku);
         if (p == null) return false;
@@ -95,7 +101,7 @@ public class Inventory {
         return lowStock;
     }
 
-    // (Keep your old method) Low stock list using external limit
+    // Low stock list using external limit
     public List<Product> getLowStockProducts(int limit) {
         List<Product> lowStock = new ArrayList<>();
         for (Product p : products) {
@@ -118,6 +124,11 @@ public class Inventory {
     // Return copy of all products
     public List<Product> getAllProducts() {
         return new ArrayList<>(products);
+    }
+
+    // Number of products in the inventory
+    public int size() {
+        return products.size();
     }
 
     // Print all products in the inventory
