@@ -135,6 +135,15 @@ public class Order {
             throw new IllegalStateException("Order can only be modified when status is NEW");
         }
     }
+    
+    public void confirm() {
+        if (this.status != OrderStatus.NEW) {
+            throw new IllegalStateException("Only NEW orders can be confirmed");
+        }
+        this.status = OrderStatus.CONFIRMED;
+    }
+
+
 
    
     // Utility

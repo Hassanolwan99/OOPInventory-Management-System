@@ -7,4 +7,6 @@ public enum OrderStatus {
     DELIVERED,  // Received by customer
     COMPLETED,  // Order closed
     CANCELLED   // Order cancelled
+, CONFIRMED
+
 }
