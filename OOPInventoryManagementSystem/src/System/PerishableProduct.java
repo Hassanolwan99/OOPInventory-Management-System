@@ -25,10 +25,11 @@ public class PerishableProduct extends Product {
     }
 
     /**
-     * Simple constructor: category=General, qty=0, min=0, max=MAX
+     * Simple constructor:
+     * category = "General", quantity = 0, minStockLevel = 0, maxStockLevel = Integer.MAX_VALUE
      */
     public PerishableProduct(String sku, String name, double unitPrice, LocalDate expiryDate) {
-        super(sku, name, unitPrice);
+        super(sku, name, "General", unitPrice, 0, 0, Integer.MAX_VALUE);
         setExpiryDate(expiryDate);
     }
 
@@ -45,9 +46,7 @@ public class PerishableProduct extends Product {
         this.expiryDate = expiryDate;
     }
 
-   
     // Business logic
-   
 
     /**
      * @return true if the product is already expired
@@ -92,9 +91,7 @@ public class PerishableProduct extends Product {
         }
     }
 
-   
     // Utility
-    
 
     @Override
     public String toString() {
