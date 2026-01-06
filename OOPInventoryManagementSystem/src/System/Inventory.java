@@ -4,21 +4,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Inventory manages the product catalog in the system.
+ * Inventory manages products and suppliers in the system.
  * It supports adding/removing products, searching, updating stock,
- * and reporting low-stock items.
+ * reporting low-stock items, and linking products to suppliers.
  *
- * Note: This class stores products in memory using a list.
+ * Note: This class stores data in memory using lists.
  */
 public class Inventory {
 
     // List to store all products in the inventory
     private final List<Product> products;
 
+    // List to store all suppliers
+    private final List<Supplier> suppliers;
+
     // Constructor
     public Inventory() {
         this.products = new ArrayList<>();
+        this.suppliers = new ArrayList<>();
     }
+
+    /* =========================
+       Products
+       ========================= */
 
     /**
      * Add a new product to the inventory (prevents duplicate SKU).
@@ -46,11 +54,16 @@ public class Inventory {
 
     /**
      * Remove product by SKU.
+     * Also unlinks this product SKU from all suppliers.
      */
     public boolean removeBySku(String sku) {
         Product toRemove = findBySku(sku);
         if (toRemove != null) {
             products.remove(toRemove);
+
+            // unlink product from suppliers
+            unlinkProductFromAllSuppliers(toRemove.getSku());
+
             return true;
         }
         return false;
@@ -72,11 +85,16 @@ public class Inventory {
 
     /**
      * Remove product by name (first match).
+     * Also unlinks this product SKU from all suppliers.
      */
     public boolean removeProductByName(String name) {
         Product toRemove = findProductByName(name);
         if (toRemove != null) {
             products.remove(toRemove);
+
+            // unlink product from suppliers
+            unlinkProductFromAllSuppliers(toRemove.getSku());
+
             return true;
         }
         return false;
@@ -98,10 +116,6 @@ public class Inventory {
 
     /**
      * Search products by partial name (returns all matches).
-     * This fulfills the "Search product" requirement in a more practical way.
-     *
-     * @param keyword part of the product name
-     * @return list of matching products (can be empty)
      */
     public List<Product> searchByName(String keyword) {
         List<Product> result = new ArrayList<>();
@@ -118,9 +132,6 @@ public class Inventory {
 
     /**
      * Search products by category (returns all matches).
-     *
-     * @param category category name
-     * @return list of products in that category (can be empty)
      */
     public List<Product> searchByCategory(String category) {
         List<Product> result = new ArrayList<>();
@@ -156,10 +167,6 @@ public class Inventory {
 
     /**
      * Update product unit price by SKU.
-     *
-     * @param sku product SKU
-     * @param newPrice new unit price (must be >= 0)
-     * @return true if updated, false if product not found
      */
     public boolean updateProductPrice(String sku, double newPrice) {
         Product p = findBySku(sku);
@@ -168,7 +175,9 @@ public class Inventory {
         return true;
     }
 
-   
+    /**
+     * Update minimum and maximum stock levels for a product.
+     */
     public boolean updateMinMaxStockLevels(String sku, int min, int max) {
         Product p = findBySku(sku);
         if (p == null) return false;
@@ -179,7 +188,6 @@ public class Inventory {
 
     /**
      * Returns products considered low stock using each product's minStockLevel.
-     * This fulfills the "Display low stock items" requirement.
      */
     public List<Product> getLowStockProducts() {
         List<Product> lowStock = new ArrayList<>();
@@ -206,8 +214,6 @@ public class Inventory {
 
     /**
      * Returns products that are completely out of stock (quantity == 0).
-     *
-     * @return list of out-of-stock products
      */
     public List<Product> getOutOfStockProducts() {
         List<Product> out = new ArrayList<>();
@@ -253,8 +259,105 @@ public class Inventory {
         } else {
             System.out.println("=== Inventory Products ===");
             for (Product p : products) {
-                System.out.println(p); // uses Product.toString()
+                System.out.println(p);
             }
+        }
+    }
+
+    /* =========================
+       Suppliers (NEW)
+       ========================= */
+
+    /**
+     * Add a supplier (prevents duplicate supplierCode).
+     *
+     * @return true if added, false otherwise
+     */
+    public boolean addSupplier(Supplier supplier) {
+        if (supplier == null) return false;
+
+        if (findSupplierByCode(supplier.getSupplierCode()) != null) {
+            return false;
+        }
+        suppliers.add(supplier);
+        return true;
+    }
+
+    /**
+     * Find supplier by code (returns first match or null).
+     */
+    public Supplier findSupplierByCode(String supplierCode) {
+        if (supplierCode == null || supplierCode.isBlank()) return null;
+
+        String code = supplierCode.trim();
+        for (Supplier s : suppliers) {
+            if (s.getSupplierCode().equalsIgnoreCase(code)) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return defensive copy of suppliers.
+     */
+    public List<Supplier> getAllSuppliers() {
+        return new ArrayList<>(suppliers);
+    }
+
+    /**
+     * Remove supplier by code (does not remove products).
+     */
+    public boolean removeSupplierByCode(String supplierCode) {
+        Supplier s = findSupplierByCode(supplierCode);
+        if (s == null) return false;
+        return suppliers.remove(s);
+    }
+
+    /**
+     * Links a product SKU to a supplier code.
+     * The relationship is stored inside Supplier.suppliedProductSkus.
+     *
+     * @return true if product and supplier exist and linking succeeded
+     */
+    public boolean assignSupplierToProduct(String supplierCode, String productSku) {
+        Supplier supplier = findSupplierByCode(supplierCode);
+        if (supplier == null) return false;
+
+        Product product = findBySku(productSku);
+        if (product == null) return false;
+
+        supplier.addSuppliedProductSku(product.getSku());
+        return true;
+    }
+
+    /**
+     * Returns all products supplied by the given supplier code.
+     */
+    public List<Product> getProductsBySupplier(String supplierCode) {
+        List<Product> result = new ArrayList<>();
+
+        Supplier supplier = findSupplierByCode(supplierCode);
+        if (supplier == null) return result;
+
+        for (String sku : supplier.getSuppliedProductSkus()) {
+            Product p = findBySku(sku);
+            if (p != null) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Helper: removes a product SKU from all suppliers.
+     * Called automatically when a product is deleted.
+     */
+    private void unlinkProductFromAllSuppliers(String sku) {
+        if (sku == null || sku.isBlank()) return;
+
+        for (Supplier s : suppliers) {
+            s.removeSuppliedProductSku(sku);
         }
     }
 }
