@@ -1,9 +1,8 @@
 package System;
 
+public class Product implements Storable {
 
-public class Product {
-
-    //  Fields (Attributes) 
+    // Fields (Attributes)
     private final String sku;      // Unique product code (cannot be changed)
     private String name;
     private String category;
@@ -12,7 +11,7 @@ public class Product {
     private int minStockLevel;     // Minimum quantity before we consider it "low stock"
     private int maxStockLevel;     // Optional upper limit to detect over-stock
 
-    // Constructors 
+    // Constructors
 
     /**
      * Full constructor with all fields.
@@ -34,8 +33,10 @@ public class Product {
         setCategory(category);
         setUnitPrice(unitPrice);
         setQuantity(quantity);
-        setMinStockLevel(minStockLevel);
+
+        // Important: set max first so min can validate against it safely
         setMaxStockLevel(maxStockLevel);
+        setMinStockLevel(minStockLevel);
     }
 
     /**
@@ -46,37 +47,17 @@ public class Product {
         this(sku, name, "General", unitPrice, 0, 0, Integer.MAX_VALUE);
     }
 
-    //  Getters 
+    // Getters
 
-    public String getSku() {
-        return sku;
-    }
+    public String getSku() { return sku; }
+    public String getName() { return name; }
+    public String getCategory() { return category; }
+    public double getUnitPrice() { return unitPrice; }
+    public int getQuantity() { return quantity; }
+    public int getMinStockLevel() { return minStockLevel; }
+    public int getMaxStockLevel() { return maxStockLevel; }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public double getUnitPrice() {
-        return unitPrice;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public int getMinStockLevel() {
-        return minStockLevel;
-    }
-
-    public int getMaxStockLevel() {
-        return maxStockLevel;
-    }
-
-    //  Setters (mutators) with simple validation 
+    // Setters (mutators) with validation
 
     public void setName(String name) {
         if (name == null || name.isBlank()) {
@@ -110,17 +91,26 @@ public class Product {
         if (minStockLevel < 0) {
             throw new IllegalArgumentException("Minimum stock level cannot be negative");
         }
+        // NEW: keep min/max consistent
+        if (minStockLevel > this.maxStockLevel) {
+            throw new IllegalArgumentException("Min stock level cannot be greater than max stock level");
+        }
         this.minStockLevel = minStockLevel;
     }
 
     public void setMaxStockLevel(int maxStockLevel) {
-        if (maxStockLevel < minStockLevel) {
+        // keep non-negative (optional but safer)
+        if (maxStockLevel < 0) {
+            throw new IllegalArgumentException("Max stock level cannot be negative");
+        }
+        // NEW: keep min/max consistent
+        if (maxStockLevel < this.minStockLevel) {
             throw new IllegalArgumentException("Max stock level cannot be less than min stock level");
         }
         this.maxStockLevel = maxStockLevel;
     }
 
-    //  Business methods for stock management 
+    // Business methods for stock management
 
     /**
      * Increase product quantity in stock.
@@ -141,12 +131,9 @@ public class Product {
      * @return true if the operation succeeded, false otherwise
      */
     public boolean decreaseQuantity(int amount) {
-        if (amount <= 0) {
-            return false;
-        }
-        if (amount > this.quantity) {
-            return false;
-        }
+        if (amount <= 0) return false;
+        if (amount > this.quantity) return false;
+
         this.quantity -= amount;
         return true;
     }
@@ -174,7 +161,7 @@ public class Product {
 
     /**
      * Applies a discount to the unit price.
-     *   
+     *
      * @param percent discount in percent (0–100)
      */
     public void applyDiscount(double percent) {
@@ -184,11 +171,11 @@ public class Product {
         double factor = 1 - (percent / 100.0);
         double newPrice = unitPrice * factor;
 
-        
+        // Round to 2 decimals
         this.unitPrice = Math.round(newPrice * 100.0) / 100.0;
     }
 
-    //  Utility methods 
+    // Utility methods
 
     @Override
     public String toString() {
@@ -196,15 +183,15 @@ public class Product {
                 "sku='" + sku + '\'' +
                 ", name='" + name + '\'' +
                 ", category='" + category + '\'' +
-                ", unitPrice=" + unitPrice +   
+                ", unitPrice=" + unitPrice +
                 ", quantity=" + quantity +
                 ", minStockLevel=" + minStockLevel +
                 ", maxStockLevel=" + maxStockLevel +
                 '}';
     }
 
-	public void printInfo() {
-		// TODO Auto-generated method stub
-		
-	}
+    // FIX: remove TODO and make it useful
+    public void printInfo() {
+        System.out.println(this);
+    }
 }
